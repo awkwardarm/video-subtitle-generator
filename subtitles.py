@@ -145,8 +145,7 @@ if __name__ == "__main__":
 
     MAX_DURATION = 3
     WRAP_LENGTH = 40
-    video_path = (
-        "/Users/matthewtryba/Desktop/music-data.mp4"  # Replace with your video file
-    )
+
+    video_path = "/Users/matthewtryba/Desktop/music-data.mp4"
 
     main(video_path, max_duration=MAX_DURATION, wrap_length=WRAP_LENGTH)
