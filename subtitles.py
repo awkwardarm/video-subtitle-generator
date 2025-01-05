@@ -13,8 +13,6 @@ device = torch.device(
     else "cpu"  # "mps" if torch.backends.mps.is_available() else "cpu" #! MPS is not supported for this model
 )
 
-# * Use "tryba-automation" conda environment
-
 
 # Main function
 def main(video_path, max_duration, wrap_length):
@@ -153,6 +151,6 @@ if __name__ == "__main__":
     MAX_DURATION = 2.5
     WRAP_LENGTH = 40
 
-    video_path = "/Users/matthewtryba/Desktop/music-data.mp4"
+    video_path = r"C:\Users\matth\Dropbox\C2C\music-data.mp4"
 
     main(video_path, max_duration=MAX_DURATION, wrap_length=WRAP_LENGTH)
