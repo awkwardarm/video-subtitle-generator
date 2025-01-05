@@ -18,6 +18,13 @@ device = torch.device(
 
 # Main function
 def main(video_path, max_duration, wrap_length):
+    """Generate subtitles for a video file.
+
+    Args:
+        video_path (str): Path to input video file.
+        max_duration (float): Maximum duration of each subtitle segment (in seconds).
+        wrap_length (int): Maximum number of characters per line in the subtitles.
+    """
 
     # Set output paths
     base_name = os.path.splitext(video_path)[0]
@@ -143,7 +150,7 @@ def generate_subtitles(audio_path, srt_output_path, max_duration, wrap_length):
 # Usage
 if __name__ == "__main__":
 
-    MAX_DURATION = 3
+    MAX_DURATION = 2.5
     WRAP_LENGTH = 40
 
     video_path = "/Users/matthewtryba/Desktop/music-data.mp4"
