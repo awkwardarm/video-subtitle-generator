@@ -151,6 +151,6 @@ if __name__ == "__main__":
     MAX_DURATION = 2.5
     WRAP_LENGTH = 40
 
-    video_path = r"C:\Users\matth\Dropbox\C2C\music-data.mp4"
+    video_path = r"C:\Users\matth\Dropbox\C2C\subtitle-generator\music-data.mp4"
 
     main(video_path, max_duration=MAX_DURATION, wrap_length=WRAP_LENGTH)
