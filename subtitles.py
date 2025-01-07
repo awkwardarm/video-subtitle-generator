@@ -6,6 +6,14 @@ from pysrt import SubRipFile, SubRipItem, SubRipTime
 from datetime import timedelta
 import torch
 
+
+# * INPUTS
+
+video_path = r"C:\Users\matth\Dropbox\C2C\subtitle-generator\music-data.mp4"
+
+MAX_DURATION = 2.5
+WRAP_LENGTH = 40
+
 # Set device to GPU if available
 device = torch.device(
     "cuda:0"
@@ -14,9 +22,9 @@ device = torch.device(
 )
 
 
-# Main function
+# * Main function
 def main(video_path, max_duration, wrap_length):
-    """Generate subtitles for a video file.
+    """Generate subtitles for a video file using the Whisper model.
 
     Args:
         video_path (str): Path to input video file.
@@ -92,7 +100,14 @@ def wrap_text(text, wrap_length):
 
 
 def generate_subtitles(audio_path, srt_output_path, max_duration, wrap_length):
+    """Generate subtitles from an audio file using the Whisper model.
 
+    Args:
+        audio_path (str): Path to input audio file.
+        srt_output_path (str): Path to output SRT file.
+        max_duration (float): Maximum duration of each subtitle segment (in seconds).
+        wrap_length (int): Maximum number of characters per line in the subtitles.
+    """
     # Load model
     model = whisper.load_model(
         "large", device=device
@@ -104,18 +119,18 @@ def generate_subtitles(audio_path, srt_output_path, max_duration, wrap_length):
     # Create SRT file
     srt_file = SubRipFile()
 
-    # Process each segment
+    # Process each segment from the model output
     for i, segment in enumerate(result["segments"]):
         start = segment["start"]
-        end = segment["end"]
+        # // end = segment["end"]
         words = segment["words"]  # Word-level timestamps
 
         # Break segment into smaller chunks based on max_duration
         current_start = start
         current_text = []
 
+        # Process each word in the segment
         for word in words:
-            # // word_start = word["start"]
             word_end = word["end"]
             word_text = word["word"]
 
@@ -124,10 +139,11 @@ def generate_subtitles(audio_path, srt_output_path, max_duration, wrap_length):
 
             # If max_duration is reached or end of segment, create a new subtitle
             if word_end - current_start >= max_duration or word is words[-1]:
+                # Convert timedelta objects to a SubRipTime objects
                 start_time = timedelta_to_srt_time(timedelta(seconds=current_start))
                 end_time = timedelta_to_srt_time(timedelta(seconds=word_end))
 
-                # Join and wrap text that is over wrap_length
+                # Join and wrap text to new line that is over wrap_length
                 text = wrap_text(" ".join(current_text), wrap_length)
 
                 # Create SRT item
@@ -136,8 +152,9 @@ def generate_subtitles(audio_path, srt_output_path, max_duration, wrap_length):
                 )
                 srt_file.append(item)
 
-                # Reset for the next chunk
+                # Set new start time from word_end
                 current_start = word_end
+                # Reset for the next chunk of words
                 current_text = []
 
     # Save SRT file
@@ -145,12 +162,5 @@ def generate_subtitles(audio_path, srt_output_path, max_duration, wrap_length):
     print(f"Subtitles saved to {srt_output_path}")
 
 
-# Usage
 if __name__ == "__main__":
-
-    MAX_DURATION = 2.5
-    WRAP_LENGTH = 40
-
-    video_path = r"C:\Users\matth\Dropbox\C2C\subtitle-generator\music-data.mp4"
-
     main(video_path, max_duration=MAX_DURATION, wrap_length=WRAP_LENGTH)
