@@ -10,6 +10,7 @@ import torch
 # * INPUTS
 
 video_path = r"C:\Users\matth\Dropbox\C2C\subtitle-generator\music-data.mp4"
+video_path = r"/Users/matthewtryba/Movies/Local Videos/2025-01-04 Sourdough/bread-music-1-2025-01-13.mov"
 
 MAX_DURATION = 2.5
 WRAP_LENGTH = 40
