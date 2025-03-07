@@ -93,8 +93,12 @@ def generate_subtitles(audio_path, srt_output_path, max_duration, wrap_length):
         wrap_length (int): Maximum number of characters per line in the subtitles.
     """
     # Load model
+    # model = whisper.load_model(
+    #     "small.en", device=device
+    # )  # Use "base" or other models (e.g., "large") as needed
+
     model = whisper.load_model(
-        "small.en", device=device
+        "turbo", device=device
     )  # Use "base" or other models (e.g., "large") as needed
 
     # Transcribe audio
@@ -106,7 +110,6 @@ def generate_subtitles(audio_path, srt_output_path, max_duration, wrap_length):
     # Process each segment from the model output
     for i, segment in enumerate(result["segments"]):
         start = segment["start"]
-        # // end = segment["end"]
         words = segment["words"]  # Word-level timestamps
 
         # Break segment into smaller chunks based on max_duration
@@ -148,7 +151,7 @@ def generate_subtitles(audio_path, srt_output_path, max_duration, wrap_length):
 
 if __name__ == "__main__":
     video_path = r"C:\Users\matth\Dropbox\C2C\subtitle-generator\music-data.mp4"
-    video_path = r"/Users/matthewtryba/Desktop/Stem Logic Walkthrough - 2025-03-05.mov"
+    video_path = r"/Users/matthewtryba/Desktop/Stem Logic - Setup 2025-03-07.mov"
 
     MAX_DURATION = 2.5
     WRAP_LENGTH = 40
