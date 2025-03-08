@@ -93,12 +93,9 @@ def generate_subtitles(audio_path, srt_output_path, max_duration, wrap_length):
         wrap_length (int): Maximum number of characters per line in the subtitles.
     """
     # Load model
-    # model = whisper.load_model(
-    #     "small.en", device=device
-    # )  # Use "base" or other models (e.g., "large") as needed
-
     model = whisper.load_model(
-        "turbo", device=device
+        "small.en",
+        device=device,
     )  # Use "base" or other models (e.g., "large") as needed
 
     # Transcribe audio
