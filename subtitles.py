@@ -5,6 +5,7 @@ import whisper
 from pysrt import SubRipFile, SubRipItem, SubRipTime
 from datetime import timedelta
 import torch
+from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor, pipeline
 
 
 def main(video_path, max_duration, wrap_length):
@@ -83,6 +84,53 @@ def wrap_text(text, wrap_length):
     return "\n".join(textwrap.wrap(text, width=wrap_length))
 
 
+def split_chunks(chunks, max_duration=2.5):
+    new_chunks = []
+
+    for chunk in chunks:
+        start, end = chunk["timestamp"]
+        text = chunk["text"]
+        duration = end - start
+
+        if duration <= max_duration:
+            new_chunks.append(chunk)
+            continue
+
+        words = text.split()
+        total_words = len(words)
+        time_per_word = duration / total_words
+
+        current_start = start
+        temp_words = []
+
+        for word in words:
+            temp_words.append(word)
+            current_duration = len(temp_words) * time_per_word
+
+            if current_duration >= max_duration:
+                new_chunks.append(
+                    {
+                        "timestamp": (current_start, current_start + current_duration),
+                        "text": " ".join(temp_words),
+                    }
+                )
+                current_start += current_duration
+                temp_words = []
+
+        if temp_words:
+            new_chunks.append(
+                {
+                    "timestamp": (current_start, end),
+                    "text": " ".join(temp_words),
+                }
+            )
+
+        # remove empty chunks
+        new_chunks = [chunk for chunk in new_chunks if chunk["text"]]
+
+    return new_chunks
+
+
 def generate_subtitles(audio_path, srt_output_path, max_duration, wrap_length):
     """Generate subtitles from an audio file using the Whisper model.
 
@@ -92,29 +140,68 @@ def generate_subtitles(audio_path, srt_output_path, max_duration, wrap_length):
         max_duration (float): Maximum duration of each subtitle segment (in seconds).
         wrap_length (int): Maximum number of characters per line in the subtitles.
     """
-    # Load model
+
+    # # * Load model
     # model = whisper.load_model(
     #     "small.en", device=device
     # )  # Use "base" or other models (e.g., "large") as needed
 
-    model = whisper.load_model(
-        "turbo", device=device
-    )  # Use "base" or other models (e.g., "large") as needed
+    # # Transcribe audio
+    # result = model.transcribe(audio_path, word_timestamps=True)
 
-    # Transcribe audio
-    result = model.transcribe(audio_path, word_timestamps=True)
+    # * Load Model via transformers
+    model_id = "openai/whisper-large-v3-turbo"
+    model_id = "openai/whisper-small.en"
+
+    model = AutoModelForSpeechSeq2Seq.from_pretrained(
+        model_id,
+        torch_dtype=torch_dtype,
+        low_cpu_mem_usage=True,
+        use_safetensors=True,
+    )
+    model.to(device)
+
+    processor = AutoProcessor.from_pretrained(model_id)
+
+    pipe = pipeline(
+        "automatic-speech-recognition",
+        model=model,
+        tokenizer=processor.tokenizer,
+        feature_extractor=processor.feature_extractor,
+        torch_dtype=torch_dtype,
+        device=device,
+    )
+
+    result = pipe(
+        audio_path, return_timestamps=True
+    )  # , generate_kwargs=generate_kwargs)
+    print(result)
+
+    # Resize chunks
+    chunk_size = MAX_DURATION
+    chunks = split_chunks(result["chunks"], chunk_size)
+
+    for chunk in chunks:
+        print(chunk)
 
     # Create SRT file
     srt_file = SubRipFile()
 
     # Process each segment from the model output
-    for i, segment in enumerate(result["segments"]):
-        start = segment["start"]
-        words = segment["words"]  # Word-level timestamps
+    for i, chunk in enumerate(result["chunks"]):
+        chunk_start_timestamp = chunk["timestamp"][0]  # Segment start time
+        chunk_end_timestamp = chunk["timestamp"][1]  # Segment end time
+        words = chunk["text"]  # List of words in the segment
 
         # Break segment into smaller chunks based on max_duration
-        current_start = start
+        current_start = chunk_start_timestamp
         current_text = []
+
+        if chunk_end_timestamp - chunk_start_timestamp >= max_duration:
+            # If the segment is too long, split it into smaller chunks
+            words = chunk["text"]
+            current_start = words[0]["start"]
+            current_text = []
 
         # Process each word in the segment
         for word in words:
@@ -122,7 +209,7 @@ def generate_subtitles(audio_path, srt_output_path, max_duration, wrap_length):
             word_text = word["word"]
 
             # Add word to current chunk
-            current_text.append(word_text)
+            current_text.append(word)
 
             # If max_duration is reached or end of segment, create a new subtitle
             if word_end - current_start >= max_duration or word is words[-1]:
@@ -150,17 +237,21 @@ def generate_subtitles(audio_path, srt_output_path, max_duration, wrap_length):
 
 
 if __name__ == "__main__":
-    video_path = r"C:\Users\matth\Dropbox\C2C\subtitle-generator\music-data.mp4"
+    # video_path = r"C:\Users\matth\Dropbox\C2C\subtitle-generator\music-data.mp4"
     video_path = r"/Users/matthewtryba/Desktop/Stem Logic - Setup 2025-03-07.mov"
 
     MAX_DURATION = 2.5
     WRAP_LENGTH = 40
 
-    # Set device to GPU if available
+    # Set torch device
     device = torch.device(
         "cuda:0"
         if torch.cuda.is_available()
-        else "cpu"  #! MPS is not supported for this model
+        else "mps" if torch.backends.mps.is_available() else "cpu"
+        # else "cpu"
     )
+
+    # Set torch dtype
+    torch_dtype = torch.float16 if torch.cuda.is_available() else torch.float32
 
     main(video_path, max_duration=MAX_DURATION, wrap_length=WRAP_LENGTH)
