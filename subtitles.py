@@ -163,4 +163,6 @@ if __name__ == "__main__":
         else "cpu"  #! MPS is not supported for this model
     )
 
+    #! Leading model via huggingface transformers allows for mps but generates improper trimestamps
+
     main(video_path, max_duration=MAX_DURATION, wrap_length=WRAP_LENGTH)
