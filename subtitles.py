@@ -147,8 +147,8 @@ def generate_subtitles(audio_path, srt_output_path, max_duration, wrap_length):
 
 
 if __name__ == "__main__":
-    video_path = r"C:\Users\matth\Dropbox\C2C\subtitle-generator\music-data.mp4"
-    video_path = r"/Users/matthewtryba/Desktop/Stem Logic - Setup 2025-03-07.mov"
+    video_path = r"Y:\Dropbox\C2C\subtitle-generator\music-data.mp4"
+    # video_path = r"/Users/matthewtryba/Desktop/Stem Logic - Setup 2025-03-07.mov"
 
     MAX_DURATION = 2.5
     WRAP_LENGTH = 40
@@ -160,6 +160,6 @@ if __name__ == "__main__":
         else "cpu"  #! MPS is not supported for this model
     )
 
-    #! Leading model via huggingface transformers allows for mps but generates improper trimestamps
+    #! Loading model via huggingface transformers allows for mps but generates improper trimestamps
 
     main(video_path, max_duration=MAX_DURATION, wrap_length=WRAP_LENGTH)
