@@ -54,6 +54,13 @@ def extract_audio(video_path, output_audio_path):
         output_audio_path,
     ]
 
+    # if FileNotFoundError: likely ffmpeg not found in PATH
+    try:
+        subprocess.run(command, check=True)
+    except FileNotFoundError:
+        print("FFmpeg not found. Please install FFmpeg and add it to your PATH.")
+        raise
+
     subprocess.run(command, check=True)
     print(f"Audio extracted to: {output_audio_path}")
 
@@ -153,7 +160,6 @@ if __name__ == "__main__":
     # check if os is mac or windows
     if os.name == "nt":
         folder_path = r"Y:\Dropbox\C2C\subtitle-generator"
-        # folder_path = r"C:\Users\matth\Desktop\subtitle-generator"
     else:
         folder_path = "/Users/matthewtryba/Dropbox/C2C/subtitle-generator"
 
