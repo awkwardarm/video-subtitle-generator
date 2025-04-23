@@ -153,6 +153,7 @@ if __name__ == "__main__":
     # check if os is mac or windows
     if os.name == "nt":
         folder_path = r"Y:\Dropbox\C2C\subtitle-generator"
+        # folder_path = r"C:\Users\matth\Desktop\subtitle-generator"
     else:
         folder_path = "/Users/matthewtryba/Dropbox/C2C/subtitle-generator"
 
