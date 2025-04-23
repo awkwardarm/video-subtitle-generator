@@ -149,7 +149,12 @@ def generate_subtitles(audio_path, srt_output_path, max_duration, wrap_length):
 if __name__ == "__main__":
 
     # Set working directory to the folder containing the video file
-    folder_path = r"Y:\Dropbox\C2C\subtitle-generator"
+
+    # check if os is mac or windows
+    if os.name == "nt":
+        folder_path = r"Y:\Dropbox\C2C\subtitle-generator"
+    else:
+        folder_path = "/Users/matthewtryba/Dropbox/C2C/subtitle-generator"
 
     # list of valid video file extensions
     video_extensions = [
