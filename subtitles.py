@@ -18,18 +18,48 @@ def main(video_path, max_duration, wrap_length):
 
     # Set output paths
     base_name = os.path.splitext(video_path)[0]
-    audio_path = base_name + "_audio.wav"
     srt_output_path = base_name + ".srt"
 
-    # Extract audio and generate subtitles
-    extract_audio(video_path, audio_path)
+    video_filebool = True  # Initialize video_filebool
+
+    # Extract audio if a video file is provided
+    if os.path.splitext(video_path)[1].lower() in [
+        ".mp4",
+        ".mov",
+        ".avi",
+        ".mkv",
+        ".flv",
+        ".wmv",
+        ".webm",
+    ]:
+        # Set bool to indicate that the input is a video file
+        print(f"Extracting audio from video: {video_path}")
+        # Ensure the audio path does not already exist
+        audio_path = base_name + "_audio.wav"
+        extract_audio(video_path, audio_path)
+
+    # If an audio file is provided, use it directly
+    elif os.path.splitext(video_path)[1].lower() in [
+        ".mp3",
+        ".wav",
+        ".aac",
+        ".ogg",
+        ".aif",
+        ".aiff",
+        ".m4a",
+        ".flac",
+    ]:
+        video_filebool = False  # Set bool to indicate that the input is an audio file
+        audio_path = video_path
+        print(f"Using provided audio file: {audio_path}")
 
     # Generate subtitles
     generate_subtitles(audio_path, srt_output_path, max_duration, wrap_length)
 
-    # Clean up intermediate audio file if desired
-    os.remove(audio_path)
-    print("Audio file removed.")
+    if video_filebool:
+        # Clean up intermediate audio file if desired
+        os.remove(audio_path)
+        print("Audio file removed.")
 
 
 def extract_audio(video_path, output_audio_path):
@@ -61,7 +91,6 @@ def extract_audio(video_path, output_audio_path):
         print("FFmpeg not found. Please install FFmpeg and add it to your PATH.")
         raise
 
-    subprocess.run(command, check=True)
     print(f"Audio extracted to: {output_audio_path}")
 
 
@@ -164,7 +193,7 @@ if __name__ == "__main__":
         folder_path = "/Users/matthewtryba/Dropbox/C2C/subtitle-generator"
 
     # list of valid video file extensions
-    video_extensions = [
+    valid_extensions = [
         ".mp4",
         ".mov",
         ".avi",
@@ -172,13 +201,21 @@ if __name__ == "__main__":
         ".flv",
         ".wmv",
         ".webm",
+        ".mp3",
+        ".wav",
+        ".aac",
+        ".ogg",
+        ".aif",
+        ".aiff",
+        ".m4a",
+        ".flac",
     ]
 
     # get all video files in the folder
     video_files = [
         os.path.join(folder_path, f)
         for f in os.listdir(folder_path)
-        if os.path.splitext(f)[1].lower() in video_extensions
+        if os.path.splitext(f)[1].lower() in valid_extensions
     ]
 
     if len(video_files) == 0:
