@@ -128,6 +128,14 @@ def generate_subtitles(audio_path, srt_output_path, max_duration, wrap_length):
         max_duration (float): Maximum duration of each subtitle segment (in seconds).
         wrap_length (int): Maximum number of characters per line in the subtitles.
     """
+    # Set device to GPU if available
+    device = torch.device(
+        "cuda:0"
+        if torch.cuda.is_available()
+        else "cpu"  #! MPS is not supported for this model
+    )
+
+    print(f"Using torch device: {device}")
     # Load model
     model = whisper.load_model(
         "small.en",
@@ -135,7 +143,9 @@ def generate_subtitles(audio_path, srt_output_path, max_duration, wrap_length):
     )  # Use "base" or other models (e.g., "large") as needed
 
     # Transcribe audio
-    result = model.transcribe(audio_path, word_timestamps=True)
+    print("Transcribing audio...")
+    result = model.transcribe(audio_path, word_timestamps=True, verbose=True)
+    print("Transcription complete. Generating subtitles...")
 
     # Create SRT file
     srt_file = SubRipFile()
@@ -231,13 +241,5 @@ if __name__ == "__main__":
     MAX_DURATION = 2.5
     WRAP_LENGTH = 40
 
-    # Set device to GPU if available
-    device = torch.device(
-        "cuda:0"
-        if torch.cuda.is_available()
-        else "cpu"  #! MPS is not supported for this model
-    )
-
     #! Loading model via huggingface transformers allows for mps but generates improper timestamps
-
     main(video_path, max_duration=MAX_DURATION, wrap_length=WRAP_LENGTH)
